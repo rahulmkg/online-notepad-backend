@@ -1,33 +1,43 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-// TEMP in‑memory notes (abhi DB nahi)
-let notes = [];
+// 🔐 MongoDB connect
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.error(err));
 
-// test route
+// 📝 Note schema
+const NoteSchema = new mongoose.Schema({
+  title: String,
+  content: String
+});
+const Note = mongoose.model("Note", NoteSchema);
+
+// test
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-// get all notes
-app.get("/notes", (req, res) => {
+// get notes
+app.get("/notes", async (req, res) => {
+  const notes = await Note.find();
   res.json(notes);
 });
 
 // save note
-app.post("/notes", (req, res) => {
-  const note = {
-    id: Date.now(),
+app.post("/notes", async (req, res) => {
+  const note = await Note.create({
     title: req.body.title,
     content: req.body.content
-  };
-  notes.push(note);
+  });
   res.json(note);
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log("Server started on", PORT));
+
