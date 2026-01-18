@@ -3,33 +3,29 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const app = express();
-app.use(cors({ origin: "*" }));
+app.use(cors());
 app.use(express.json());
 
-// 🔐 MongoDB connect
+// MongoDB connect
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.error(err));
+  .catch(err => console.error("Mongo error:", err.message));
 
-// 📝 Note schema
 const NoteSchema = new mongoose.Schema({
   title: String,
   content: String
 });
 const Note = mongoose.model("Note", NoteSchema);
 
-// test
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-// get notes
 app.get("/notes", async (req, res) => {
   const notes = await Note.find();
   res.json(notes);
 });
 
-// save note
 app.post("/notes", async (req, res) => {
   const note = await Note.create({
     title: req.body.title,
@@ -40,4 +36,3 @@ app.post("/notes", async (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log("Server started on", PORT));
-
